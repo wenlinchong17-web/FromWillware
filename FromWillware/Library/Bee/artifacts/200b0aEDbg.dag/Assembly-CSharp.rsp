@@ -354,6 +354,9 @@
 -analyzer:"/Applications/Unity/Hub/Editor/2022.3.62f2c1/Unity.app/Contents/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/Resources/GUI Kit The Stone/Scripts/Panel.cs"
 "Assets/Resources/GUI Kit The Stone/Scripts/PanelControl.cs"
+"Assets/Script/Camera/CameraFollow.cs"
+"Assets/Script/Character/Base/Character.cs"
+"Assets/Script/Character/Player/PlayerMove.cs"
 -langversion:9.0
 /deterministic
 /optimize-
