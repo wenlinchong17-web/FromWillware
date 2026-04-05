@@ -1,75 +1,63 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Cinemachine;
 
 public class LockOnSystem : MonoBehaviour
 {
-    public float lockRange = 15f;
-    public LayerMask enemyLayer;
-    public CinemachineTargetGroup targetGroup;
-    public bool IsLocking;
-    public Transform currentTarget;
+    public CameraFollow cameraFollow;
+    public float LockRadius = 10f;
+    public LayerMask EnemyLayer;
     
-    private List<Transform> enemies = new List<Transform>();
-    private CameraFollow cameraFollow;
-
+    private List<Transform> targets = new List<Transform>();
+    private int index = 0;
+    
+    // Start is called before the first frame update
     void Start()
     {
-        cameraFollow = FindObjectOfType<CameraFollow>();
+        cameraFollow =  FindObjectOfType<CameraFollow>();
+        EnemyLayer = LayerMask.GetMask("Enemy");
     }
+
+    // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.L))
         {
-            if (currentTarget == null)
-                LockOn();
+            if (cameraFollow.CurrentTarget == null)
+                FindTarget();
             else
-                Unlock();
+                ClearTarget();
+        }
+
+        if (cameraFollow.CurrentTarget != null)
+        {
+            if(Input.GetKeyDown(KeyCode.Q)) SwitchTarget(-1);
+            if (Input.GetKeyDown(KeyCode.E)) SwitchTarget(1);
         }
     }
-
-    void LockOn()
+    
+    void FindTarget()
     {
-        enemies.Clear();
-
-        Collider[] hits = Physics.OverlapSphere(transform.position, lockRange, enemyLayer);
-
-        float minDist = Mathf.Infinity;
-        Transform bestTarget = null;
-
-        foreach (var hit in hits)
-        {
-            Transform enemy = hit.transform;
-
-            float dist = Vector3.Distance(transform.position, enemy.position);
-
-            if (dist < minDist)
-            {
-                minDist = dist;
-                bestTarget = enemy;
-            }
-        }
-
-        if (bestTarget != null)
-        {
-            currentTarget = bestTarget;
-
-            // 加入相机组
-            targetGroup.AddMember(currentTarget, 1f, 2f);
-        }
-        cameraFollow.enabled = true;
-        IsLocking = true;
+        Collider[] hits = Physics.OverlapSphere(transform.position,LockRadius,EnemyLayer);
+        targets.Clear();
+        foreach (Collider hit in hits)
+            targets.Add(hit.transform);
+        
+        if (targets.Count == 0) return;
+        index = 0;
+        cameraFollow.CurrentTarget = targets[index];
+    }
+    
+    void SwitchTarget(int dir)
+    {
+        if (targets.Count == 0) return;
+        index = (index +dir +targets.Count) % targets.Count;
+        cameraFollow.CurrentTarget = targets[index];
     }
 
-    void Unlock()
+    void ClearTarget()
     {
-        if (currentTarget != null)
-        {
-            targetGroup.RemoveMember(currentTarget);
-            currentTarget = null;
-        }
-        cameraFollow.enabled = false;
-        IsLocking = false;
+        cameraFollow.CurrentTarget = null;
+        targets.Clear();
     }
 }
