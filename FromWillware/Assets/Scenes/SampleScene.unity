@@ -1403,10 +1403,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerTransform: {fileID: 5844072559376846531}
-  MouseSensitivity: 800
+  MouseSensitivity: 1500
   Distance: 20
+  VerticalOffset: 1.5
+  LookAtOffset: 1.5
   xRotation: 20
   yRotation: 0
+  MinDistance: 0.6
+  ObstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
