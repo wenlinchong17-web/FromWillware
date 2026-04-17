@@ -18,13 +18,13 @@ public class Enemy : Character
     public float activationRange = 8.0f; 
 
     private bool isActivated = false;
-    private bool isDead = false;
+    public bool isDead = false;
 
     private float lastAttackTime = -999f;
 
     private EnemyAttack enemyWeapon;
 
-    void Start()
+    protected virtual void Start()
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
@@ -46,7 +46,7 @@ public class Enemy : Character
         }
     }
 
-    void Update()
+    protected virtual void Update()
     {
 
         if (isDead || playerTarget == null) return;
