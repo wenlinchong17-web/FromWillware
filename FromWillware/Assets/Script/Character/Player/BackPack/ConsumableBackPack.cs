@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ConsumableBackPack : BackPack
+public class ConsumableBackPack : BackPack,ISaveable
 {
     // Start is called before the first frame update
     public List<ItemStack> Items = new List<ItemStack>();
@@ -20,7 +20,7 @@ public class ConsumableBackPack : BackPack
     // Update is called once per frame
     
 
-    void OnTriggerEnter(Collider other)
+    void OnTriggerStay(Collider other)
     {
         if (other.CompareTag("Item"))
         {
@@ -40,9 +40,13 @@ public class ConsumableBackPack : BackPack
     {
         if (nearbyItem != null && Input.GetKeyDown(KeyCode.E))
         {
-            AddItem(nearbyItem.ItemData);
-            Destroy(nearbyItem.gameObject); // 拾取后消失
-            nearbyItem = null;
+            if (AddItem(nearbyItem.ItemData))
+            {
+                Destroy(nearbyItem.gameObject); // 拾取后消失
+                nearbyItem = null;
+            }
+               
+           
         }
 
         if (Input.GetKeyDown(KeyCode.F))
@@ -56,7 +60,7 @@ public class ConsumableBackPack : BackPack
         }
     }
     
-    public void AddItem(Item item)
+    public bool AddItem(Item item)
     {
         // 1. 先堆叠
         foreach (var stack in Items)
@@ -64,20 +68,25 @@ public class ConsumableBackPack : BackPack
             if (stack != null && stack.item == item && stack.CurrentCount < item.MaxCount)
             {
                 stack.CurrentCount++;
-                return;
+                return true;
+            }
+            else
+            {
+                Debug.Log("The item is MaxCount");
+                return false;
             }
         }
 
         // 2. 新建
         if (Items.Count < MaxSize)
         {
-            if(item.Name == "HP_Potion") Items.Add(new ItemStack(item, item.MaxCount));
             Items.Add(new ItemStack(item, 1));
+            return true;
         }
         else
         {
             Debug.Log("背包满");
-            return;
+            return false;
         }
     }
 
@@ -149,6 +158,72 @@ public class ConsumableBackPack : BackPack
         Items[BackIndex].BarIndex = -1;
        
     }
-
     
+    public object CaptureState()
+    {
+        InventoryData data = new InventoryData();
+        data.items = new List<InventoryItemData>();
+
+        foreach (var stack in Items)
+        {
+            if (stack == null || stack.item == null) continue;
+
+            data.items.Add(new InventoryItemData
+            {
+                itemID = stack.item.Name,
+                count = stack.CurrentCount,
+                barIndex = stack.BarIndex
+            });
+        }
+
+        return JsonUtility.ToJson(data);
+    }
+    
+    public void RestoreState(object state)
+    {
+        string json = (string)state;
+        InventoryData data = JsonUtility.FromJson<InventoryData>(json);
+
+        Items.Clear();
+
+        foreach (var itemData in data.items)
+        {
+            Item item = ItemDatabase.Instance.GetItemByID(itemData.itemID);
+
+            if (item == null)
+            {
+                Debug.LogWarning("找不到物品: " + itemData.itemID);
+                continue;
+            }
+
+            ItemStack stack = new ItemStack(item, itemData.count);
+            stack.BarIndex = itemData.barIndex;
+
+            Items.Add(stack);
+        }
+
+        // ⭐ 恢复快捷栏（关键！）
+        //RestoreItemBar();
+    }
+    
+    public string GetUniqueID()
+    {
+        return "ConsumableBackPack";
+    }
+}
+
+
+
+[System.Serializable]
+public class InventoryItemData
+{
+    public string itemID;
+    public int count;
+    public int barIndex;
+}
+
+[System.Serializable]
+public class InventoryData
+{
+    public List<InventoryItemData> items;
 }
