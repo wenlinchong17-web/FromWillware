@@ -65,7 +65,7 @@ public class InventorySlotUI : MonoBehaviour, IPointerEnterHandler, IPointerExit
     {
         if (eventData.button == PointerEventData.InputButton.Left && InventoryUIManager.Instance != null)
         {
-            InventoryUIManager.Instance.MoveSelectionBox(this.transform);
+            InventoryUIManager.Instance.SelectSlot(this.slotIndex);
         }
     }
 
