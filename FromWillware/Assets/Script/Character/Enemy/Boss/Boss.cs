@@ -18,13 +18,19 @@ public class Boss : Character
     public float repositionSpeed = 3.5f;
     public float actionCooldown = 3f;
 
+    [Header("冲刺碰撞参数")]
+    public float dashTriggerRange = 12f;
+    public float dashSpeed = 16f;         
+    public float dashCooldown = 6f;
+    public float dashMaxDuration = 1.5f;
+    private float lastDashTime = -999f;
+    private bool isDashing = false;
+    private float dashTimer = 0f;
+    private Vector3 dashTargetPoint;
+
     [Header("破防系统")]
     public float staggerThreshold = 100f;
-    public float staggerResetTime = 3f;
-    public float staggerDecaySpeed = 20f;
-
-    private float staggerValue = 0f;
-    private float lastHitTime = -999f;
+    public float currentStagger = 0f;
 
     [HideInInspector] public bool isExecutingSkill { get; private set; }
 
@@ -39,21 +45,20 @@ public class Boss : Character
     private BossMoveController moveController;
     private BossSkillSelector skillSelector;
 
-    private float pauseTimer = 0f;
     private bool isInStagger = false;
+    private float pushDistanceRemaining = 0f;
 
     void Start()
     {
         anim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
-
         CurrentHP = MaxHP;
 
         agent.updateRotation = false;
         agent.stoppingDistance = 0f;
         agent.acceleration = 25f;
         agent.autoBraking = false;
-
+        lastActionTime = Time.time;
         anim.applyRootMotion = false;
 
         skills = GetComponents<BossSkill>().ToList();
@@ -67,85 +72,94 @@ public class Boss : Character
             playerTarget = GameObject.FindGameObjectWithTag("Player")?.transform;
     }
 
+    // 碰撞/弹反逻辑
+    public void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("PlayerAttack"))
+        {
+            Damage playerDamage = other.GetComponent<Damage>();
+            if (playerDamage != null) TakeDamage(playerDamage.damage);
+        }
+
+        if (isDashing && other.CompareTag("Player"))
+        {
+            PlayerParry playerParry = other.GetComponent<PlayerParry>();
+            if (playerParry != null && playerParry.IsParrying)
+            {
+                GetParried();
+            }
+           
+        }
+    }
+
+    public void TakeDamage(int damageAmount)
+    {
+        if (IsDead || CurrentHP <= 0) return;
+        CurrentHP -= damageAmount;
+        currentStagger += damageAmount;
+        if (CurrentHP <= 0) { Die(); return; }
+
+        bool isHyper = isExecutingSkill && currentActiveSkill != null && currentActiveSkill.isHyperArmor;
+        if (!isHyper && currentStagger >= staggerThreshold)
+        {
+            currentStagger = 0f;
+            TriggerBreak();
+        }
+    }
+
     void Update()
     {
         if (IsDead || playerTarget == null) return;
 
-        transform.position = agent.nextPosition;
-
         float currentDistance = Vector3.Distance(transform.position, playerTarget.position);
 
-        // ===== 破防条衰减 =====
-        if (Time.time > lastHitTime + staggerResetTime)
-        {
-            staggerValue -= Time.deltaTime * staggerDecaySpeed;
-            staggerValue = Mathf.Max(0f, staggerValue);
-        }
-
-        // ===== 破防状态 =====
+        // 1. 处理受击硬直
         if (isInStagger)
         {
-            AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
-            if (!anim.IsInTransition(0) && state.normalizedTime >= 1f)
-                EndStaggerInternal();
-
-            UpdateAnimator();
-            return;
-        }
-
-        // ===== 后摇 =====
-        if (pauseTimer > 0)
-        {
-            pauseTimer -= Time.deltaTime;
-
-            if (pauseTimer <= 0)
+            if (pushDistanceRemaining > 0)
             {
-                anim.speed = 1f;
-                agent.isStopped = false;
+                float moveStep = 4f * Time.deltaTime;
+                if (moveStep > pushDistanceRemaining) moveStep = pushDistanceRemaining;
+                agent.Move(-transform.forward * moveStep);
+                pushDistanceRemaining -= moveStep;
             }
-
+            if (!anim.IsInTransition(0) && anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f) EndStaggerInternal();
             UpdateAnimator();
             return;
         }
 
-        // ===== 移动到技能攻击距离 =====
-        if (isMovingToAttackDistance && pendingSkill != null)
+        // 2. 处理冲刺碰撞逻辑
+        if (isDashing)
         {
-            float moveDistance = Vector3.Distance(transform.position, playerTarget.position);
-
-            if (Mathf.Abs(moveDistance - pendingSkill.attackDistance) <= attackDistanceTolerance)
-            {
-                isMovingToAttackDistance = false;
-                ExecuteSkill(pendingSkill);
-                pendingSkill = null;
-                return;
-            }
-
-            Vector3 dir = (transform.position - playerTarget.position).normalized;
-            Vector3 targetPos = playerTarget.position + dir * pendingSkill.attackDistance;
-
-            agent.speed = repositionSpeed;
-            agent.SetDestination(targetPos);
-
-            FaceTarget(8f);
+            UpdateDashLogic();
             UpdateAnimator();
             return;
         }
 
-        // ===== 技能播放中 =====
+        // 3. 处理技能执行/前奏
         if (isExecutingSkill)
         {
             FaceTarget(10f);
-
-            AnimatorStateInfo state = anim.GetCurrentAnimatorStateInfo(0);
-            if (!anim.IsInTransition(0) && state.normalizedTime >= 1f)
-                OnSkillEnd();
-
+            if (!anim.IsInTransition(0) && anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 0.98f) OnSkillEnd();
             UpdateAnimator();
             return;
         }
 
-        // ===== 超出激活范围 =====
+        if (isMovingToAttackDistance && pendingSkill != null)
+        {
+            UpdateRepositionLogic();
+            UpdateAnimator();
+            return;
+        }
+
+        // 4. 冲刺触发检测
+        if (currentDistance > dashTriggerRange && Time.time >= lastDashTime + dashCooldown)
+        {
+            StartDash();
+            return;
+        }
+
+        // 5. 正常 AI 逻辑
         if (currentDistance > activationRange)
         {
             agent.isStopped = true;
@@ -153,7 +167,6 @@ public class Boss : Character
             return;
         }
 
-        // ===== 技能选择 =====
         if (Time.time >= lastActionTime + actionCooldown)
         {
             var skill = skillSelector.ChooseSkill(currentDistance);
@@ -165,88 +178,97 @@ public class Boss : Character
             }
         }
 
-        // ===== 常规移动 =====
         agent.isStopped = false;
         FaceTarget(8f);
         moveController.Tick(currentDistance, playerTarget, optimalDistance, chaseSpeed, repositionSpeed);
-
         UpdateAnimator();
     }
 
-    void OnAnimatorMove()
-    {
-        if (!isInStagger) return;
 
-        agent.nextPosition += anim.deltaPosition;
-        transform.rotation *= anim.deltaRotation;
+    private void StartDash()
+    {
+        isDashing = true;
+        dashTimer = 0f;
+        lastDashTime = Time.time;
+
+        // 目标点设在玩家身后 4 米
+        Vector3 dirToPlayer = (playerTarget.position - transform.position).normalized;
+        dashTargetPoint = playerTarget.position + dirToPlayer * 4.0f;
+
+        agent.isStopped = true;
+        agent.ResetPath();
+        gameObject.tag = "EnemyAttack";
+        anim.SetBool("IsDashing", true);
     }
 
-    // =========================
-    //  玩家攻击入口
-    // =========================
-    public void OnHitByPlayer(int damage)
+    private void UpdateDashLogic()
     {
-        if (IsDead) return;
+        dashTimer += Time.deltaTime;
 
-        CurrentHP -= damage;
-        CurrentHP = Mathf.Max(0, CurrentHP);
+        Vector3 dir = (dashTargetPoint - transform.position).normalized;
+        agent.Move(dir * dashSpeed * Time.deltaTime);
 
-        if (CurrentHP <= 0)
+        if (dir != Vector3.zero)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 6f);
+
+        if (dashTimer >= dashMaxDuration || Vector3.Distance(transform.position, dashTargetPoint) < 0.8f)
         {
-            Die();
+            EndDash();
+        }
+    }
+
+    private void EndDash()
+    {
+        isDashing = false;
+        gameObject.tag = "Enemy";
+        anim.SetBool("IsDashing", false);
+        agent.isStopped = false;
+        lastActionTime = Time.time;
+    }
+
+
+    private void UpdateRepositionLogic()
+    {
+        float moveDistance = Vector3.Distance(transform.position, playerTarget.position);
+        if (Mathf.Abs(moveDistance - pendingSkill.attackDistance) <= attackDistanceTolerance)
+        {
+            isMovingToAttackDistance = false;
+            ExecuteSkill(pendingSkill);
+            pendingSkill = null;
             return;
         }
-
-        lastHitTime = Time.time;
-        staggerValue += damage;
-
-        bool isHyper = isExecutingSkill &&
-                       currentActiveSkill != null &&
-                       currentActiveSkill.isHyperArmor;
-
-        if (!isHyper && staggerValue >= staggerThreshold)
-        {
-            staggerValue = 0f;
-            TriggerBreak();
-        }
+        Vector3 dir = (transform.position - playerTarget.position).normalized;
+        Vector3 targetPos = playerTarget.position + dir * pendingSkill.attackDistance;
+        agent.speed = repositionSpeed;
+        agent.SetDestination(targetPos);
+        FaceTarget(8f);
     }
 
-    // =========================
-    //  弹反
-    // =========================
     public void GetParried()
     {
-        if (!isExecutingSkill || currentActiveSkill == null)
-            return;
-
-        if (currentActiveSkill.isHyperArmor)
-            return;
-
-        int level = currentActiveSkill.parryStaggerLevel;
-
-        StartStaggerLogic();
-
-        if (level == 0)
-            anim.SetTrigger("DoStagger_Minor");
-        else
-            anim.SetTrigger("DoStagger_Major");
+        if (isDashing) EndDash();
+        if (!isExecutingSkill && !isDashing) return;
+        if (currentActiveSkill != null && currentActiveSkill.isHyperArmor) return;
+        StartStaggerLogic(0f);
+        anim.SetTrigger("DoStagger_Minor");
     }
 
     private void TriggerBreak()
     {
-        StartStaggerLogic();
+        if (isDashing) EndDash();
+        StartStaggerLogic(2f);
         anim.SetTrigger("DoHit");
     }
 
-    private void StartStaggerLogic()
+    private void StartStaggerLogic(float pushDist)
     {
+        if (currentActiveSkill != null) currentActiveSkill.DisableWeapon();
         isExecutingSkill = false;
         currentActiveSkill = null;
-
+        pendingSkill = null;
+        isMovingToAttackDistance = false;
         isInStagger = true;
-        pauseTimer = 0f;
-        anim.speed = 1f;
-
+        pushDistanceRemaining = pushDist;
         agent.isStopped = true;
         agent.velocity = Vector3.zero;
     }
@@ -254,18 +276,16 @@ public class Boss : Character
     private void EndStaggerInternal()
     {
         isInStagger = false;
-        agent.nextPosition = transform.position;
+        pushDistanceRemaining = 0f;
         agent.isStopped = false;
     }
 
-    // =========================
-    //  技能
-    // =========================
     private void ExecuteSkill(BossSkill skill)
     {
         isExecutingSkill = true;
         currentActiveSkill = skill;
         agent.isStopped = true;
+        agent.ResetPath();
         skill.Use();
         lastActionTime = Time.time;
     }
@@ -279,6 +299,7 @@ public class Boss : Character
 
     public void OnSkillEnd()
     {
+        if (currentActiveSkill != null) currentActiveSkill.DisableWeapon();
         isExecutingSkill = false;
         currentActiveSkill = null;
         agent.isStopped = false;
@@ -286,21 +307,11 @@ public class Boss : Character
 
     public override void Die()
     {
+        if (isDashing) EndDash();
+        if (currentActiveSkill != null) currentActiveSkill.DisableWeapon();
         agent.isStopped = true;
         IsDead = true;
         anim.SetTrigger("DoDeath");
-    }
-
-    public void ExecutePause(float duration)
-    {
-        pauseTimer = duration;
-        agent.isStopped = true;
-        anim.speed = 0f;
-    }
-
-    public void ExecutePause()
-    {
-        ExecutePause(0.3f);
     }
 
     void FaceTarget(float speed)
@@ -308,17 +319,13 @@ public class Boss : Character
         Vector3 dir = (playerTarget.position - transform.position);
         dir.y = 0;
         if (dir.sqrMagnitude < 0.01f) return;
-
-        transform.rotation = Quaternion.Slerp(
-            transform.rotation,
-            Quaternion.LookRotation(dir),
-            Time.deltaTime * speed);
+        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * speed);
     }
 
     void UpdateAnimator()
     {
-        Vector3 local = transform.InverseTransformDirection(agent.velocity);
-
+        Vector3 currentVelocity = isDashing ? transform.forward * dashSpeed : agent.velocity;
+        Vector3 local = transform.InverseTransformDirection(currentVelocity);
         anim.SetFloat("VelocityX", local.x / chaseSpeed, 0.15f, Time.deltaTime);
         anim.SetFloat("VelocityZ", local.z / chaseSpeed, 0.15f, Time.deltaTime);
     }
