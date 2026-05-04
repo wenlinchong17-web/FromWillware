@@ -19,7 +19,7 @@ public class Damage : MonoBehaviour
     {
         if (player != null)
         {
-            damage = player.GetComponentInChildren<Weapon>().WeaponDamage;
+            damage = player.GetComponentInChildren<WeaponPickup>().weaponData.Damage;
         }
     }
     

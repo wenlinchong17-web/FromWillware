@@ -50,8 +50,9 @@ public class GetHit : MonoBehaviour
         if (playerState.CanGetHit)
         {
             animator.SetTrigger("GetHit");
-            audioSource.PlayOneShot(HitSound);
+            
         }
+        audioSource.PlayOneShot(HitSound);
        
     }
 

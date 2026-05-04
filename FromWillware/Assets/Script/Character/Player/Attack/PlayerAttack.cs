@@ -40,7 +40,8 @@ public class PlayerAttack : MonoBehaviour
     void Update()
     {
         currentWeapon = weaponSystem.CurrentWeapon;
-        currentWeaponCollider = currentWeapon.GetComponentInChildren<Collider>();
+        if(currentWeapon!=null) 
+            currentWeaponCollider = currentWeapon.GetComponentInChildren<Collider>();
         Attack();
         FixIsAttacking();
     }
@@ -65,9 +66,10 @@ public class PlayerAttack : MonoBehaviour
     void StartAttack()
     {
         if (IsAttacking) return;
-        var weapon = currentWeapon.GetComponent<Weapon>();
+        if(currentWeapon==null) return;
+        var weapon = currentWeapon.GetComponent<WeaponPickup>();
     
-        animator.SetFloat("AttackSpeed", weapon.AttackSpeed);
+        //animator.SetFloat("AttackSpeed", weapon.AttackSpeed);
         
 
         rb.velocity = new Vector3(0, rb.velocity.y, 0);
@@ -76,7 +78,7 @@ public class PlayerAttack : MonoBehaviour
         if (comboStep == 1)
         {
             animator.SetTrigger("Combo1");
-            player.ConsumeStamina(weapon.ConsumingStamina);
+            player.ConsumeStamina(weapon.weaponData.ConsumingStamina);
         }
         IsAttacking = true;
     }
@@ -94,7 +96,7 @@ public class PlayerAttack : MonoBehaviour
     
     void DoNextCombo()
     {
-        var weapon = currentWeapon.GetComponent<Weapon>();
+        var weapon = currentWeapon.GetComponent<WeaponPickup>();
         if (!canCombo) return;
 
         comboStep++;
@@ -102,12 +104,12 @@ public class PlayerAttack : MonoBehaviour
         if(comboStep==2)
         {
             animator.SetTrigger("Combo2");
-            player.ConsumeStamina(weapon.ConsumingStamina);
+            player.ConsumeStamina(weapon.weaponData.ConsumingStamina);
         }
         else if(comboStep==3)
         {
             animator.SetTrigger("Combo3");
-            player.ConsumeStamina(weapon.ConsumingStamina);
+            player.ConsumeStamina(weapon.weaponData.ConsumingStamina);
         }
         
         canCombo = false;
