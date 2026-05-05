@@ -41,9 +41,26 @@ public class PlayerAttack : MonoBehaviour
     {
         currentWeapon = weaponSystem.CurrentWeapon;
         if(currentWeapon!=null) 
-            currentWeaponCollider = currentWeapon.GetComponentInChildren<Collider>();
+            currentWeaponCollider = FindChildWithTag(currentWeapon.transform,"PlayerAttack").GetComponent<Collider>();
         Attack();
         FixIsAttacking();
+    }
+    
+    Transform FindChildWithTag(Transform parent, string tag)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.CompareTag(tag))
+            {
+                return child;
+            }
+
+            // 递归查找子物体的子物体
+            Transform result = FindChildWithTag(child, tag);
+            if (result != null)
+                return result;
+        }
+        return null;
     }
 
     void Attack()
