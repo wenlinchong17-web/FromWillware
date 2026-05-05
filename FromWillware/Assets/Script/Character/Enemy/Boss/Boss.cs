@@ -39,6 +39,9 @@ public class Boss : Character
     public AudioClip dashSound;     
     public AudioClip deathSound;
 
+    [Header("经验参数")]
+    public int expReward = 500;
+
     [HideInInspector] public bool isExecutingSkill { get; private set; }
 
     private BossSkill currentActiveSkill;
@@ -336,6 +339,16 @@ public class Boss : Character
         IsDead = true;
         anim.SetTrigger("DoDeath");
         if (audioSource && deathSound) audioSource.PlayOneShot(deathSound);
+
+        if (playerTarget != null)
+        {
+            LevelSystem ls = playerTarget.GetComponent<LevelSystem>();
+            if (ls != null)
+            {
+                ls.exp += expReward;
+                ls.LevelUp();
+            }
+        }
     }
 
     void FaceTarget(float speed)
