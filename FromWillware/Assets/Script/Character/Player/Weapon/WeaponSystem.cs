@@ -9,20 +9,14 @@ public class WeaponSystem : MonoBehaviour
     public List<Transform> Weapons;
     public int CurrentWeaponIndex = 0;
     public Transform CurrentWeapon;
+    public int MaxSzie = 2;
     
     private Player player;
     
     // Start is called before the first frame update
     void Start()
     {
-        foreach (Transform child in WeaponPoint)
-        {
-            Weapons.Add(child);
-            child.gameObject.SetActive(false);
-            child.GetComponentInChildren<Collider>().enabled = false;
-        }
-        if(Weapons.Count > 0)
-            EquipWeapon(0);
+        Weapons = new List<Transform>(2);
     }
 
     // Update is called once per frame
@@ -36,16 +30,49 @@ public class WeaponSystem : MonoBehaviour
 
     public void EquipWeapon(int index)
     {
+        if (Weapons.Count == 0) return;
+
+        // 关闭所有武器
+        foreach (var w in Weapons)
+            w.gameObject.SetActive(false);
+
         CurrentWeaponIndex = index;
-        Weapons[index].gameObject.SetActive(true);
         CurrentWeapon = Weapons[index];
-        
+
+        CurrentWeapon.gameObject.SetActive(true);
     }
 
     public void ChangeWeapon()
     {
+        if (Weapons.Count == 0) return;
+
         Weapons[CurrentWeaponIndex].gameObject.SetActive(false);
-        CurrentWeaponIndex = (CurrentWeaponIndex+1)%Weapons.Count;
+
+        CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Count;
+
         EquipWeapon(CurrentWeaponIndex);
+    }
+    public void AddWeapon(WeaponData data)
+    {
+        if (Weapons.Count >= MaxSzie)
+        {
+            Debug.Log("装备的武器数已满");
+            return;
+        }
+        GameObject weapon = Instantiate(data.WeaponPrefab, WeaponPoint, false);
+
+        weapon.transform.localPosition = Vector3.zero;
+        weapon.transform.localRotation = Quaternion.identity;
+        weapon.transform.localScale = Vector3.one;
+
+        weapon.gameObject.SetActive(false);
+        weapon.GetComponentInChildren<Collider>().enabled = false;
+        
+        Weapons.Add(weapon.transform);
+
+        if (CurrentWeapon == null)
+        {
+            EquipWeapon(Weapons.Count - 1);
+        }
     }
 }

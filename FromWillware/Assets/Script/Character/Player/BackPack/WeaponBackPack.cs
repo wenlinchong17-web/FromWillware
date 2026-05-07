@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,36 +6,60 @@ using UnityEngine;
 public class WeaponBackPack : BackPack
 {
     // Start is called before the first frame update
-    public List<Weapon> Weapons;
-    public int PackIndex;
-    
+    public List<WeaponData> Weapons;
+    public Transform WeaponPoint;
+
+    private WeaponSystem weaponSystem;
+    private WeaponPickup nearbyWeapon;
     void Start()
     {
         CurrentIndex = 0;
         CurrentSize = 0;
+        weaponSystem = GetComponent<WeaponSystem>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        WeaponPickUp();
     }
 
-    public void WeaponAdd(Weapon weapon)
+    private void OnTriggerEnter(Collider other)
     {
-        if (CurrentSize == MaxSize)
+        if (other.CompareTag("Weapon"))
         {
-            Debug.Log("The Weapon BackPack is Full");
+            nearbyWeapon = other.GetComponent<WeaponPickup>();
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Weapon"))
+        {
+            nearbyWeapon = null;
+        }
+    }
+
+    public void WeaponPickUp()
+    {
+        if (nearbyWeapon!=null&&Input.GetKeyDown(KeyCode.E))
+        {
+            WeaponAdd(nearbyWeapon.weaponData);
+            weaponSystem.AddWeapon(nearbyWeapon.weaponData); // ✅ 关键
+            Destroy(nearbyWeapon.gameObject);
+        }
+    }
+
+    public void WeaponAdd(WeaponData data)
+    {
+        if(Weapons.Count < MaxSize)
+            Weapons.Add(data);
+        else
+        {
+            Debug.Log("BackPack is full");
             return;
         }
-        
-        Weapons.Add(weapon);
-        CurrentSize = Weapons.Count;
     }
-
-    public void WeaponDesert(int index)
-    {
-        CurrentIndex = index;
-        Weapons.RemoveAt(CurrentIndex);
-    }
+    
+    
 }
