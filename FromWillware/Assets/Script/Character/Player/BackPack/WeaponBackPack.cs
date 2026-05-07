@@ -71,7 +71,7 @@ public class WeaponBackPack : BackPack,ISaveable
     // ================= SAVE =================
     public string CaptureState()
     {
-       
+        return null;
     }
 
     // ================= LOAD =================
