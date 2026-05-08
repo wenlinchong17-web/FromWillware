@@ -5,12 +5,14 @@ using UnityEngine;
 public class HP_Potion : Item
 {
     public int RecoveryHP = 30;
+    public GameObject HealEffect;
+    public Transform HealPos;
     
     public override void Fun(Player player)
     {
-       
+       HealPos = player.transform;
         player.PlayDrinkAnim();
-        
+        Instantiate(HealEffect, HealPos.position, Quaternion.identity);
         if (player.CurrentHP + RecoveryHP < player.MaxHP)
         {
             player.CurrentHP += RecoveryHP;

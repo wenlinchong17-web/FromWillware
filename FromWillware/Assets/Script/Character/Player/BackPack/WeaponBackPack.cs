@@ -48,7 +48,9 @@ public class WeaponBackPack : BackPack,ISaveable
         {
             WeaponAdd(nearbyWeapon.weaponData);
             weaponSystem.AddWeapon(nearbyWeapon.weaponData); // ✅ 关键
-            Destroy(nearbyWeapon.gameObject);
+            nearbyWeapon.isPickedUp = true;
+            nearbyWeapon.gameObject.SetActive(false);
+            //Destroy(nearbyWeapon.gameObject);
         }
     }
 
@@ -71,13 +73,41 @@ public class WeaponBackPack : BackPack,ISaveable
     // ================= SAVE =================
     public string CaptureState()
     {
-        return null;
+        WeaponBackPackSaveData saveData =
+            new WeaponBackPackSaveData();
+
+        foreach (var weapon in Weapons)
+        {
+            saveData.weaponIDs.Add(weapon.Name);
+        }
+
+        return JsonUtility.ToJson(saveData);
     }
 
     // ================= LOAD =================
     public void RestoreState(string json)
     {
-      
+        WeaponBackPackSaveData saveData =
+            JsonUtility.FromJson<WeaponBackPackSaveData>(json);
+
+        Weapons.Clear();
+
+        foreach (string id in saveData.weaponIDs)
+        {
+            if (WeaponDatabase.dict.ContainsKey(id))
+            {
+                WeaponData data = WeaponDatabase.dict[id];
+
+                Weapons.Add(data);
+
+                // 恢复 WeaponSystem
+                weaponSystem.AddWeapon(data);
+            }
+            else
+            {
+                Debug.LogWarning("Weapon not found: " + id);
+            }
+        }
     }
 
     

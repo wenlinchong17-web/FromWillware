@@ -1,24 +1,30 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WeaponPickup : MonoBehaviour
+public class WeaponPickup : MonoBehaviour, ISaveable
 {
     public WeaponData weaponData;
 
-    private Collider attackCollider;
-    // Start is called before the first frame update
+    public bool isPickedUp = false;
+    
     void Start()
     {
+       
         var child = FindChildWithTag(this.transform, "PlayerAttack");
-        child.GetComponent<Collider>().enabled = false;
+
+        if (child != null)
+        {
+            Collider col = child.GetComponent<Collider>();
+
+            if (col != null)
+            {
+                col.enabled = false;
+            }
+        }
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     Transform FindChildWithTag(Transform parent, string tag)
     {
         foreach (Transform child in parent)
@@ -28,11 +34,84 @@ public class WeaponPickup : MonoBehaviour
                 return child;
             }
 
-            // 递归查找子物体的子物体
             Transform result = FindChildWithTag(child, tag);
+
             if (result != null)
                 return result;
         }
+
         return null;
+    }
+
+    // ================= 拾取 =================
+
+    public void PickUp()
+    {
+        isPickedUp = true;
+
+        HideItem();
+    }
+
+    // ================= 隐藏 =================
+
+    private void HideItem()
+    {
+        gameObject.SetActive(false);
+    }
+
+    private void ShowItem()
+    {
+        gameObject.SetActive(true);
+    }
+
+    // ================= 唯一ID =================
+
+    public string GetUniqueID()
+    {
+        SaveableEntity entity =
+            GetComponentInParent<SaveableEntity>();
+
+        if (entity == null)
+        {
+            Debug.Log(gameObject.name + " missing SaveableEntity");
+            return "";
+        }
+
+        return entity.UniqueID;
+    }
+
+    // ================= 保存 =================
+
+    [System.Serializable]
+    class SaveData
+    {
+        public bool pickedUp;
+    }
+
+    public string CaptureState()
+    {
+        SaveData data = new SaveData();
+
+        data.pickedUp = isPickedUp;
+
+        return JsonUtility.ToJson(data);
+    }
+
+    // ================= 读取 =================
+
+    public void RestoreState(string json)
+    {
+        SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+        isPickedUp = data.pickedUp;
+
+        if (isPickedUp)
+        {
+            HideItem();
+        }
+        else
+        {
+            ShowItem();
+        }
     }
 }

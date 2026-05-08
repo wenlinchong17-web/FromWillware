@@ -46,7 +46,7 @@ public class ConsumableBackPack : BackPack,ISaveable
         {
             if (AddItem(nearbyItem.ItemData))
             {
-                animator.SetTrigger("Pickup");
+                animator.SetTrigger("PickUp");
                 StartCoroutine(DestroyAfterDelay(nearbyItem.gameObject, 0.5f));
                 nearbyItem = null;
             }
@@ -60,7 +60,9 @@ public class ConsumableBackPack : BackPack,ISaveable
     IEnumerator DestroyAfterDelay(GameObject obj, float delay)
     {
         yield return new WaitForSeconds(delay);
-        Destroy(obj);
+        obj.GetComponent<ItemPickup>().isPickedUp = true;
+        //Destroy(obj);
+        obj.SetActive(false);
     }
     
     public bool AddItem(Item item)

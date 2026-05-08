@@ -10,6 +10,8 @@ public class LevelSystem : MonoBehaviour,ISaveable
     public int HpUpdate = 20;
     public int StaminaUpdate = 20;
     public int damageUpdate = 5;
+    public GameObject LevelUpEffectPrefab;
+    public Transform vfxPoint;
     
     private Player player;
     private Damage damage;
@@ -34,6 +36,11 @@ public class LevelSystem : MonoBehaviour,ISaveable
             exp -= expToNextLevel;
             level++;
             PlayerUpdate();
+            Instantiate(
+                LevelUpEffectPrefab,
+                vfxPoint.position,
+                Quaternion.identity
+            );
             Debug.Log("Level Up to " + level );
         }
     }
