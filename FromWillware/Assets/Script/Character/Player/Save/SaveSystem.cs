@@ -9,6 +9,7 @@ public class SaveSystem : MonoBehaviour
     public string fileName = "save.json";
 
     private bool canSave = false;
+    private PlayerInputHandler inputHandler;
     
     // 把路径获取改为公开的静态方法，方便主菜单检查存档是否存在
     public static string GetSavePath(string fileName) 
@@ -21,6 +22,11 @@ public class SaveSystem : MonoBehaviour
 
     string Path => GetSavePath(fileName);
 
+    public void Awake()
+    {
+        inputHandler = FindObjectOfType<PlayerInputHandler>();
+    }
+    
     IEnumerator Start()
     {
         if (shouldLoadSaveGame)
@@ -35,7 +41,7 @@ public class SaveSystem : MonoBehaviour
 
     void Update()
     {
-        if (canSave && Input.GetKeyDown(KeyCode.E)) Save();
+        if (canSave && inputHandler.interactPressed) Save();
         if (Input.GetKeyDown(KeyCode.I)) Load();
     }
 

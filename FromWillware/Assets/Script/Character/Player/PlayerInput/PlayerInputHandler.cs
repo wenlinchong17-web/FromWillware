@@ -19,6 +19,12 @@ public class PlayerInputHandler : MonoBehaviour
     
     public Vector2 itemInput;
 
+    public float switchTargetInput;
+    public int switchTargetDirection;
+    private bool switchAxisInUse;
+
+    public bool switchWeapon;
+    public bool resetCamera;
     void Awake()
     {
         input = new PlayerInputActions();
@@ -53,7 +59,34 @@ public class PlayerInputHandler : MonoBehaviour
         
         input.Player.Running.performed += ctx => runningPressed = true;
 
+        input.Player.SwitchTarget.performed += ctx =>
+        {
+            float value = ctx.ReadValue<float>();
+
+            // 防止连续触发
+            if (!switchAxisInUse)
+            {
+                if (value > 0.5f)
+                {
+                    switchTargetDirection = 1;
+                    switchAxisInUse = true;
+                }
+                else if (value < -0.5f)
+                {
+                    switchTargetDirection = -1;
+                    switchAxisInUse = true;
+                }
+            }
+        };
+
+        input.Player.SwitchTarget.canceled += ctx =>
+        {
+            switchAxisInUse = false;
+        };
         
+        input.Player.WeaponSwitch.performed += ctx => switchWeapon = true;
+        
+        input.Player.ResetCamera.performed += ctx => resetCamera = true;
     }
 
     void LateUpdate()
@@ -68,5 +101,12 @@ public class PlayerInputHandler : MonoBehaviour
         parryReleased = false;
 
         runningPressed = false;
+        switchWeapon = false;
+
+        resetCamera = false;
+    }
+    public void ConsumeSwitchTarget()
+    {
+        switchTargetDirection = 0;
     }
 }
