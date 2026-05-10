@@ -35,27 +35,44 @@ public class GetHit : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if(player.IsDead||playerMove.IsRolling) return;
+        if(player.IsDead || playerMove.IsRolling)
+            return;
 
-        
-        player.CurrentHP -= damage;    
-        Debug.Log("The player has been hit " + damage);
+        player.CurrentHP -= damage;
+
         if (player.CurrentHP <= 0)
         {
             audioSource.PlayOneShot(HitSound);
             player.Die();
             return;
         }
-        
+
         if (playerState.CanGetHit)
         {
-            animator.SetTrigger("GetHit");
-            
+            StartCoroutine(GetHitCoroutine());
         }
-        audioSource.PlayOneShot(HitSound);
-       
-    }
 
+        audioSource.PlayOneShot(HitSound);
+    }
+    
+    private Coroutine hitCoroutine;
+
+    IEnumerator GetHitCoroutine()
+    {
+        if (hitCoroutine != null)
+            StopCoroutine(hitCoroutine);
+
+        IsGetHit = true;
+
+        animator.SetTrigger("GetHit");
+
+        // 等待受击动画时间
+        yield return new WaitForSeconds(0.5f);
+
+        IsGetHit = false;
+
+        hitCoroutine = null;
+    }
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("EnemyAttack"))

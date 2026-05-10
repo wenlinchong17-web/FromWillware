@@ -12,6 +12,8 @@ public class PlayerMove : MonoBehaviour
     public bool NextRolling;
     public float RollStamina;
     public bool IsRunning = false;
+    public AudioClip MoveAudio;
+    public AudioSource audioSource;
     
     [SerializeField]
     private Rigidbody rb;
@@ -35,6 +37,7 @@ public class PlayerMove : MonoBehaviour
         hitState = GetComponent<GetHit>();
         playerState = GetComponent<PlayerState>();
         inputHandler = GetComponent<PlayerInputHandler>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -68,7 +71,7 @@ public class PlayerMove : MonoBehaviour
         Vector3 move = forward * v + right * h;
         move = move.normalized;
 
-        if (Input.GetKeyDown(KeyCode.LeftShift)||inputHandler.runningPressed)
+        if (inputHandler.runningPressed)
         {
             IsRunning = !IsRunning;
         }
@@ -101,15 +104,28 @@ public class PlayerMove : MonoBehaviour
         }
         
     }
+    public void PlayFootstep()
+    {
+        Vector3 horizontalVelocity =
+            new Vector3(rb.velocity.x, 0, rb.velocity.z);
+
+        if (horizontalVelocity.magnitude < 0.5f)
+            return;
+
+        //audioSource.PlayOneShot(MoveAudio);
+    }
 
     public void Roll()
     {
-        if (playerAttack.IsAttacking) return;
 
-        if ((Input.GetKeyDown(KeyCode.Space)|| inputHandler.rollPressed)&& NextRolling && !player.StaminaEmpty)
+        if (inputHandler.rollPressed && playerState.CanRoll)
         {
             player.ConsumeStamina(RollStamina);
             animator.SetTrigger("Roll");
+        }
+        else
+        {
+            return;
         }
             
     }
@@ -140,13 +156,6 @@ public class PlayerMove : MonoBehaviour
         NextRolling = true;
     }
     
-    // void OnAnimatorMove()
-    // {
-    //     if (IsRolling) // 只有翻滚时才用动画位移
-    //     {
-    //         rb.velocity = animator.deltaPosition / Time.deltaTime;
-    //     }
-    // }
     void OnAnimatorMove()
     {
         if (!IsRolling) return;

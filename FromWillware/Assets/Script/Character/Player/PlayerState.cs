@@ -12,6 +12,7 @@ public class PlayerState : MonoBehaviour
     private GetHit hitState;
 
     public bool CanMove;
+    public bool CanRoll;
     public bool CanAttack;
     public bool CanParry;
     public bool CanGetHit;
@@ -30,6 +31,7 @@ public class PlayerState : MonoBehaviour
     void Update()
     {
         SetCanMove();
+        SetCanRoll();
         SetCanAttack();
         SetCanParry();
         SetCanGetHit();
@@ -39,6 +41,12 @@ public class PlayerState : MonoBehaviour
     void SetCanMove()
     {
         CanMove = !playerMove.IsRolling && !playerAttack.IsAttacking && !playerParry.IsDefensing && !hitState.IsGetHit;
+    }
+
+    void SetCanRoll()
+    {
+        CanRoll = !playerAttack.IsAttacking && !playerParry.IsDefensing && !hitState.IsGetHit && !player.StaminaEmpty &&
+                  playerMove.NextRolling;
     }
 
     void SetCanAttack()
