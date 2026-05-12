@@ -316,6 +316,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Esc"",
+                    ""type"": ""Button"",
+                    ""id"": ""77f8b495-5bd2-4628-827e-0d3950d0c154"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -923,6 +932,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""BackPackSwitch"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0d0f0c21-cb0f-4a90-a19f-643ed62e9990"",
+                    ""path"": ""<Gamepad>/select"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Esc"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""0ec5bbed-2217-4f02-8e41-1a29f8eff779"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Esc"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -956,6 +987,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_SetItem3 = m_Player.FindAction("SetItem3", throwIfNotFound: true);
         m_Player_SetItem4 = m_Player.FindAction("SetItem4", throwIfNotFound: true);
         m_Player_BackPackSwitch = m_Player.FindAction("BackPackSwitch", throwIfNotFound: true);
+        m_Player_Esc = m_Player.FindAction("Esc", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -1061,6 +1093,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SetItem3;
     private readonly InputAction m_Player_SetItem4;
     private readonly InputAction m_Player_BackPackSwitch;
+    private readonly InputAction m_Player_Esc;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1173,6 +1206,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @BackPackSwitch => m_Wrapper.m_Player_BackPackSwitch;
         /// <summary>
+        /// Provides access to the underlying input action "Player/Esc".
+        /// </summary>
+        public InputAction @Esc => m_Wrapper.m_Player_Esc;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1273,6 +1310,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @BackPackSwitch.started += instance.OnBackPackSwitch;
             @BackPackSwitch.performed += instance.OnBackPackSwitch;
             @BackPackSwitch.canceled += instance.OnBackPackSwitch;
+            @Esc.started += instance.OnEsc;
+            @Esc.performed += instance.OnEsc;
+            @Esc.canceled += instance.OnEsc;
         }
 
         /// <summary>
@@ -1359,6 +1399,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @BackPackSwitch.started -= instance.OnBackPackSwitch;
             @BackPackSwitch.performed -= instance.OnBackPackSwitch;
             @BackPackSwitch.canceled -= instance.OnBackPackSwitch;
+            @Esc.started -= instance.OnEsc;
+            @Esc.performed -= instance.OnEsc;
+            @Esc.canceled -= instance.OnEsc;
         }
 
         /// <summary>
@@ -1574,5 +1617,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBackPackSwitch(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Esc" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnEsc(InputAction.CallbackContext context);
     }
 }

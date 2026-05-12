@@ -19,6 +19,7 @@ public class Settings : MonoBehaviour
     [Header("游戏控制")]
     public bool pauseGameOnSettingsOpen = true; // 是否在打开设置时暂停游戏
 
+    private PlayerInputHandler inputHandler;
     // 预设的三个分辨率
     private Vector2[] resolutions = new Vector2[]
     {
@@ -41,12 +42,13 @@ public class Settings : MonoBehaviour
         // 初始化UI元素，使其反映当前游戏状态或上次保存的设置
         InitializeUI();
         LoadSettings(); // 加载保存的设置
+        inputHandler = FindAnyObjectByType<PlayerInputHandler>();
     }
 
     void Update()
     {
         // 监听Esc键
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (inputHandler.escPressed)
         {
             ToggleSettingsPanel(); // 切换设置面板的显示/隐藏
         }

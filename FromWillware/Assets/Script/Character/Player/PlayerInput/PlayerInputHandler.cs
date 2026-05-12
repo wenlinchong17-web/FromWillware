@@ -44,6 +44,8 @@ public class PlayerInputHandler : MonoBehaviour
     public bool setItem4Pressed;
 
     public bool backPackSwitchPressed;
+    
+    public bool escPressed;
     void Awake()
     {
         input = new PlayerInputActions();
@@ -132,6 +134,8 @@ public class PlayerInputHandler : MonoBehaviour
         input.Player.SetItem4.performed += ctx => setItem4Pressed = true;
         
         input.Player.BackPackSwitch.performed += ctx => backPackSwitchPressed = true;
+        
+        input.Player.Esc.performed += ctx => escPressed = true;
     }
 
     void LateUpdate()
@@ -170,6 +174,8 @@ public class PlayerInputHandler : MonoBehaviour
         setItem4Pressed = false;
         
         backPackSwitchPressed = false;
+        
+        escPressed = false;
     }
     public void ConsumeSwitchTarget()
     {
