@@ -93,6 +93,10 @@ public class WeaponSystem : MonoBehaviour
     {
         WeaponData data = weaponBackPack.Weapons[backIndex];
 
+        while (Weapons.Count <= pointIndex)
+        {
+            Weapons.Add(null);
+        }
         // 删除原来的武器
         if (Weapons[pointIndex] != null)
         {

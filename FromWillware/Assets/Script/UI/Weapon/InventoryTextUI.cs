@@ -17,7 +17,10 @@ public class InventoryTextUI : MonoBehaviour
     
     private List<InventoryTextSlotUI> spawnedSlots = new List<InventoryTextSlotUI>();
     private int currentSelectedIndex = 0;   
-
+    private PlayerInputHandler inputHandler;
+    private InventoryUIManager inventoryUIManager;
+    private bool isWeaponOpen;
+    
     void Start()
     {
         if (weaponSystem == null && weaponBackPack != null)
@@ -27,6 +30,8 @@ public class InventoryTextUI : MonoBehaviour
         
         // 初始化时确保界面是关闭的
         CloseUI();
+        inputHandler = FindAnyObjectByType<PlayerInputHandler>();
+        inventoryUIManager = FindAnyObjectByType<InventoryUIManager>();
     }
 
     void Update()
@@ -37,11 +42,13 @@ public class InventoryTextUI : MonoBehaviour
         // -------------------------------------------------------------
 
         // 只要武器界面处于打开状态，就监听自己的上下按键和装备按键
-        if (isUIOpen && spawnedSlots.Count > 0)
+        if (isUIOpen && spawnedSlots.Count > 0&&!inventoryUIManager.isConsumableOpen)
         {
             HandleKeyboardNavigation();
             HandleEquipInput();
         }
+
+        isWeaponOpen = inventoryUIManager.isWeaponOpen;
     }
 
     // 【新增】提供给大管家 (InventoryUIManager) 调用的打开方法
@@ -91,11 +98,12 @@ public class InventoryTextUI : MonoBehaviour
 
     private void HandleKeyboardNavigation()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
+        if (!isWeaponOpen) return;
+        if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W)||inputHandler.chooseItemUpPressed)
         {
             if (currentSelectedIndex > 0) SelectSlot(currentSelectedIndex - 1);
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
+        else if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)||inputHandler.chooseItemDownPressed)
         {
             if (currentSelectedIndex < spawnedSlots.Count - 1) SelectSlot(currentSelectedIndex + 1);
         }
@@ -113,8 +121,9 @@ public class InventoryTextUI : MonoBehaviour
 
     private void HandleEquipInput()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1)) EquipWeaponToPoint(0);
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) EquipWeaponToPoint(1);
+        if (!isWeaponOpen) return;
+        if (Input.GetKeyDown(KeyCode.Alpha1)||inputHandler.setItem1Pressed) EquipWeaponToPoint(0);
+        else if (Input.GetKeyDown(KeyCode.Alpha2)||inputHandler.setItem2Pressed) EquipWeaponToPoint(1);
     }
 
     private void EquipWeaponToPoint(int pointIndex)

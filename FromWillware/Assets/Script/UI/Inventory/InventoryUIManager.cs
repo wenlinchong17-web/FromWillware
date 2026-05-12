@@ -27,6 +27,9 @@ public class InventoryUIManager : MonoBehaviour
     public Player player;
     public PlayerInputHandler inputHandler; // 改为 public，方便面板拖拽防丢失
 
+    public bool isConsumableOpen;
+    public bool isWeaponOpen;
+
     void Awake()
     {
         Instance = this;
@@ -58,10 +61,10 @@ public class InventoryUIManager : MonoBehaviour
         if (backPack == null) backPack = FindObjectOfType<ConsumableBackPack>();
 
         // ================== 核心：统筹管理页签切换逻辑 ==================
-        bool isConsumableOpen = inventoryPanel.activeSelf;
-        bool isWeaponOpen = weaponUI != null && weaponUI.isUIOpen;
+         isConsumableOpen = inventoryPanel.activeSelf;
+         isWeaponOpen = weaponUI != null && weaponUI.isUIOpen;
         bool isAnyOpen = isConsumableOpen || isWeaponOpen;
-
+       
         // 【C 键】：整个背包系统的 总开关
         if (Input.GetKeyDown(KeyCode.C) || (inputHandler != null && inputHandler.backPackPressed))
         {
@@ -78,7 +81,7 @@ public class InventoryUIManager : MonoBehaviour
         }
 
         // 【B 键】：页签切换键（只有在背包开着的时候才生效）
-        if (Input.GetKeyDown(KeyCode.B) && isAnyOpen)
+        if (inputHandler.backPackSwitchPressed && isAnyOpen)
         {
             if (isConsumableOpen)
             {
@@ -114,6 +117,7 @@ public class InventoryUIManager : MonoBehaviour
     // --- 新增的 UI 状态控制方法 ---
     public void OpenConsumableUI()
     {
+        //UIInputManager.Instance.EnterUI();
         inventoryPanel.SetActive(true);
         if (player != null) player.IsInventoryOn = true;
         Invoke("ShowSelectionBox", 0.05f); // 延迟显示选中框
@@ -121,6 +125,7 @@ public class InventoryUIManager : MonoBehaviour
 
     public void CloseConsumableUI()
     {
+        //UIInputManager.Instance.ExitUI();
         inventoryPanel.SetActive(false);
         if (selectionBox != null) selectionBox.gameObject.SetActive(false);
     }
@@ -165,21 +170,22 @@ public class InventoryUIManager : MonoBehaviour
 
     void HandleKeyboardNavigation()
     {
-        if (Input.GetKeyDown(KeyCode.J)|| (inputHandler != null && inputHandler.chooseItemLeftPressed))
+        if (Input.GetKeyDown(KeyCode.J) || (inputHandler != null && inputHandler.chooseItemLeftPressed))
             if (currentSelectedIndex % columns != 0 && currentSelectedIndex - 1 >= 0) SelectSlot(currentSelectedIndex - 1);
-
-        else if (Input.GetKeyDown(KeyCode.L)|| (inputHandler != null && inputHandler.chooseItemRightPressed))
+        
+        if (Input.GetKeyDown(KeyCode.L)|| (inputHandler != null && inputHandler.chooseItemRightPressed))
             if ((currentSelectedIndex + 1) % columns != 0 && currentSelectedIndex + 1 < slots.Length) SelectSlot(currentSelectedIndex + 1);
 
-        else if (Input.GetKeyDown(KeyCode.I)|| (inputHandler != null && inputHandler.chooseItemUpPressed))
-            if (currentSelectedIndex - columns >= 0) SelectSlot(currentSelectedIndex - columns);
-
-        else if (Input.GetKeyDown(KeyCode.K)|| (inputHandler != null && inputHandler.chooseItemDownPressed))
+        if (Input.GetKeyDown(KeyCode.I) || (inputHandler != null && inputHandler.chooseItemUpPressed))
+            if (currentSelectedIndex - columns >= 0) SelectSlot(currentSelectedIndex - columns); 
+        
+        if (Input.GetKeyDown(KeyCode.K) || (inputHandler != null && inputHandler.chooseItemDownPressed))
             if (currentSelectedIndex + columns < slots.Length) SelectSlot(currentSelectedIndex + columns);
     }
 
     public void SelectSlot(int index)
     {
+        Debug.Log("切换到格子: " + index);
         if (selectionBox == null || index < 0 || index >= slots.Length) return;
         currentSelectedIndex = index; 
         selectionBox.gameObject.SetActive(true);

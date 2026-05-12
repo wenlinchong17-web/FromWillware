@@ -221,6 +221,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "BackPackSwitch",
+                    "type": "Button",
+                    "id": "f621e210-3baa-43dc-a503-e0fa5eb79b6a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -804,6 +813,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "SetItem4",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a366c98d-e301-4157-9c57-1e1285c7fbbc",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BackPackSwitch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "101ee967-6ce8-4219-a53a-40078e7fc9f4",
+                    "path": "<Keyboard>/b",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BackPackSwitch",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

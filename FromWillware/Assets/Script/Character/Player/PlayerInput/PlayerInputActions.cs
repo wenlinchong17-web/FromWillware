@@ -307,6 +307,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""BackPackSwitch"",
+                    ""type"": ""Button"",
+                    ""id"": ""f621e210-3baa-43dc-a503-e0fa5eb79b6a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -892,6 +901,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""SetItem4"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a366c98d-e301-4157-9c57-1e1285c7fbbc"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BackPackSwitch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""101ee967-6ce8-4219-a53a-40078e7fc9f4"",
+                    ""path"": ""<Keyboard>/b"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""BackPackSwitch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -924,6 +955,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_SetItem2 = m_Player.FindAction("SetItem2", throwIfNotFound: true);
         m_Player_SetItem3 = m_Player.FindAction("SetItem3", throwIfNotFound: true);
         m_Player_SetItem4 = m_Player.FindAction("SetItem4", throwIfNotFound: true);
+        m_Player_BackPackSwitch = m_Player.FindAction("BackPackSwitch", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -1028,6 +1060,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SetItem2;
     private readonly InputAction m_Player_SetItem3;
     private readonly InputAction m_Player_SetItem4;
+    private readonly InputAction m_Player_BackPackSwitch;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1136,6 +1169,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @SetItem4 => m_Wrapper.m_Player_SetItem4;
         /// <summary>
+        /// Provides access to the underlying input action "Player/BackPackSwitch".
+        /// </summary>
+        public InputAction @BackPackSwitch => m_Wrapper.m_Player_BackPackSwitch;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1233,6 +1270,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SetItem4.started += instance.OnSetItem4;
             @SetItem4.performed += instance.OnSetItem4;
             @SetItem4.canceled += instance.OnSetItem4;
+            @BackPackSwitch.started += instance.OnBackPackSwitch;
+            @BackPackSwitch.performed += instance.OnBackPackSwitch;
+            @BackPackSwitch.canceled += instance.OnBackPackSwitch;
         }
 
         /// <summary>
@@ -1316,6 +1356,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SetItem4.started -= instance.OnSetItem4;
             @SetItem4.performed -= instance.OnSetItem4;
             @SetItem4.canceled -= instance.OnSetItem4;
+            @BackPackSwitch.started -= instance.OnBackPackSwitch;
+            @BackPackSwitch.performed -= instance.OnBackPackSwitch;
+            @BackPackSwitch.canceled -= instance.OnBackPackSwitch;
         }
 
         /// <summary>
@@ -1524,5 +1567,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSetItem4(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "BackPackSwitch" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnBackPackSwitch(InputAction.CallbackContext context);
     }
 }
