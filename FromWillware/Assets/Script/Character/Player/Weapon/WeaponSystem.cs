@@ -89,17 +89,45 @@ public class WeaponSystem : MonoBehaviour
         }
     }
 
-    public void SetToWeaponPoint(int BackIndex, int PointIndex)
+    public void SetToWeaponPoint(int backIndex, int pointIndex)
     {
-        GameObject weapon = weaponBackPack.Weapons[BackIndex].WeaponPrefab;
-        Weapons[PointIndex] = weapon.transform;
-        if (PointIndex != CurrentWeaponIndex)
+        WeaponData data = weaponBackPack.Weapons[backIndex];
+
+        while (Weapons.Count <= pointIndex)
         {
-            Weapons[PointIndex].gameObject.SetActive(false);
+            Weapons.Add(null);
+        }
+        // 删除原来的武器
+        if (Weapons[pointIndex] != null)
+        {
+            Destroy(Weapons[pointIndex].gameObject);
+        }
+
+        // 实例化新武器
+        GameObject weaponObj =
+            Instantiate(data.WeaponPrefab, WeaponPoint, false);
+
+        weaponObj.transform.localPosition = Vector3.zero;
+        weaponObj.transform.localRotation = Quaternion.identity;
+        weaponObj.transform.localScale = Vector3.one;
+
+        weaponObj.GetComponentInChildren<Collider>().enabled = false;
+
+        // 替换列表中的武器
+        Weapons[pointIndex] = weaponObj.transform;
+
+        // 激活状态处理
+        if (pointIndex == CurrentWeaponIndex)
+        {
+            weaponObj.SetActive(true);
+
+            CurrentWeapon = weaponObj.transform;
+
+            ApplyWeaponAnimation(data);
         }
         else
         {
-            Weapons[PointIndex].gameObject.SetActive(true);
+            weaponObj.SetActive(false);
         }
     }
     

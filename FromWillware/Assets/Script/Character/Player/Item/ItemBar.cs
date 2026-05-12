@@ -12,6 +12,7 @@ public class ItemBar : MonoBehaviour
     private PlayerAttack playerAttack;
     private PlayerParry playerParry;
     private PlayerInputHandler inputHandler;
+    private InventoryUIManager inventoryUIManager;
 
     void Start()
     {
@@ -27,6 +28,7 @@ public class ItemBar : MonoBehaviour
         {
             Items.Add(null);
         }
+        inventoryUIManager = FindObjectOfType<InventoryUIManager>();
     }
 
     void Update()
@@ -44,7 +46,7 @@ public class ItemBar : MonoBehaviour
                        !playerAttack.IsAttacking && 
                        !playerParry.IsDefensing);
 
-        if (!canUse) return;
+        if (!canUse||inventoryUIManager.isWeaponOpen) return;
 
         if (inputHandler.useItem1Pressed) UseItem(0);
         if (inputHandler.useItem2Pressed) UseItem(1);
