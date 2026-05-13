@@ -10,6 +10,8 @@ public class Player : Character,ISaveable
     public bool StaminaEmpty;
     public bool IsInventoryOn = false;
 
+    public bool IsUIOpen;
+    
     private Animator animator;
     private PlayerState playerState;
    
