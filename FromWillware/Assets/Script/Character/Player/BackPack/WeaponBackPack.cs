@@ -122,10 +122,14 @@ public class WeaponBackPack : BackPack, ISaveable
         if (Weapons.Count >= MaxSize)
         {
             Debug.Log("BackPack is full");
+            string message = "背包满";
+            NotificationManager.Instance.Show(message);
             return false;
         }
 
         Weapons.Add(data);
+        string message1 = "获得武器：" + data.Name + " * 1";
+        NotificationManager.Instance.Show(message1);
         return true;
     }
 

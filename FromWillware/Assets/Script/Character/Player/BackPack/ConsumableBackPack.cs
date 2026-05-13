@@ -161,7 +161,10 @@ public class ConsumableBackPack : BackPack, ISaveable
             {
                 stack.CurrentCount++;
 
+                string message = "获得道具：" + item.Name + "*1";
+                NotificationManager.Instance.Show(message);
                 return true;
+                
             }
         }
 
@@ -172,11 +175,15 @@ public class ConsumableBackPack : BackPack, ISaveable
             {
                 Items[i] = new ItemStack(item, 1);
 
+                string message = "获得道具：" + item.Name + " * 1";
+                NotificationManager.Instance.Show(message);
                 return true;
             }
         }
 
         Debug.Log("背包满");
+        string message1 = "背包满";
+        NotificationManager.Instance.Show(message1);
 
         return false;
     }

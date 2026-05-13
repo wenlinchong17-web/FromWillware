@@ -150,6 +150,8 @@ public class SaveSystem : MonoBehaviour
         PlayerPrefs.Save();
 
         Debug.Log("Saved");
+        string message = "保存游戏成功！";
+        NotificationManager.Instance.Show(message);
     }
 
     // ================= LOAD =================

@@ -42,6 +42,8 @@ public class LevelSystem : MonoBehaviour,ISaveable
                 Quaternion.identity
             );
             Debug.Log("Level Up to " + level );
+            string message = "升级到"+level+"级";
+            NotificationManager.Instance.Show(message);
         }
     }
 
